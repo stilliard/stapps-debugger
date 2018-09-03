@@ -39,6 +39,12 @@ input[type="submit"] {
     cursor: pointer;
 }
 
+code {
+    background-color: #EEE;
+    padding: .5em;
+    display: inline-block;
+}
+
 /* modules */
 
 .tools {
