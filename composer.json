@@ -5,14 +5,16 @@
         "slim/slim": "^3.1",
         "monolog/monolog": "^1.17",
         "slim/twig-view": "^2.4",
-        "mika56/spfcheck": "^1.1"
+        "mika56/spfcheck": "^1.1",
+        "slim/csrf": "^0.8.3"
     },
     "require-dev": {
         "phpunit/phpunit": ">=4.8 < 6.0"
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Stapps\\": "src/"
         }
     },
     "config": {
@@ -20,7 +22,13 @@
     },
     "scripts": {
         "start": "php -S localhost:8080 -t public",
-        "test": "phpunit"
+        "test": "phpunit",
+        "post-install-cmd": [
+            "composer dump-autoload"
+        ],
+        "post-update-cmd": [
+            "composer dump-autoload"
+        ]
     }
 
 }

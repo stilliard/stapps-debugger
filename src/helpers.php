@@ -1,4 +1,5 @@
 <?php
+// Helpers
 
 use Mika56\SPFCheck\SPFCheck;
 use Mika56\SPFCheck\DNSRecordGetterDirect;

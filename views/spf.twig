@@ -46,6 +46,7 @@
     {% endif %}
 
     <form action="/spf" method="post">
+        {{ csrf() }}
 
         <p>
             <label for="ip">IP address:</label>

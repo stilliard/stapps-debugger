@@ -1,0 +1,18 @@
+{% extends "master.twig" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+
+    <h2>{{ msg }}</h2>
+
+    <ul class="tools">
+        <li>
+            <a href="javascript:history.back();">Go back</a>
+        </li>
+        <li>
+            <a href="/">Return home</a>
+        </li>
+    </ul>
+
+{% endblock %}
