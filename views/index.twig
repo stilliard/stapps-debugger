@@ -1,5 +1,70 @@
 {% extends "master.twig" %}
 
 {% block content %}
-    <h2>Demo</h2>
+    <h2>A collection of useful debug tools</h2>
+
+    <p>Email / SPF</p>
+    <ul class="tools">
+        <li>
+            <a href="/spf">SPF Email to IP Debugger</a>
+            <small>Quick check to see if an email address is allowed to send from a given IP.</small>
+        </li>
+        <li>
+            <a href="https://vamsoft.com/support/tools/spf-syntax-validator">SPF Syntax Validator</a>
+            <small>Check if a given SPF record syntax is valid. Useful when writing SPF records.</small>
+        </li>
+        <li>
+            <a href="https://vamsoft.com/support/tools/spf-policy-tester">SPF Policy Tester</a>
+            <small>Check the SPF record for a site in detail using more verbose logs.</small>
+        </li>
+        <li>
+            <a href="https://mxtoolbox.com/ReverseLookup.aspx">RDNS Check</a>
+            <small>Lookup reverse DNS for a given site.</small>
+        </li>
+        <li>
+            <a href="https://mxtoolbox.com/blacklists.aspx">Blacklist Check</a>
+            <small>Check if a site is on a known email blacklist.</small>
+        </li>
+    </ul>
+
+    <p>Domain / DNS</p>
+    <ul class="tools">
+        <li>
+            <a href="https://dnschecker.org/">Check DNS</a>
+            <small>See if your A record has propagated worldwide.</small>
+        </li>
+        <li>
+            <a href="https://mxtoolbox.com/DNSLookup.aspx">Lookup IP</a>
+            <small>Find the IP address for a site.</small>
+        </li>
+    </ul>
+
+    <p>HTTPS / SSL</p>
+    <ul class="tools">
+        <li>
+            <a href="https://www.ssllabs.com/ssltest/">SSL Labs</a>
+            <small>Check for SSL installation issues.</small>
+        </li>
+        <li>
+            <a href="https://httpschecker.net/guides/https-checker">HTTPS Checker</a>
+            <small>Check for HTTPS mixed content issues.</small>
+        </li>
+        <li>
+            <a href="https://movingtohttps.com/">Moving to HTTPS</a>
+            <small>Community build migration guide.</small>
+        </li>
+    </ul>
+
+    <p>Misc.</p>
+    <ul class="tools">
+        <li>
+            <a href="https://robots-txt-checker.wildfireinternet.co.uk/">Robots.txt Checker</a>
+            <small>Test robots.txt rules.</small>
+        </li>
+        <li>
+            <a href="https://search.google.com/test/mobile-friendly/">Mobile-Friendly Test</a>
+            <small>Google's mobile friendliness tool.</small>
+        </li>
+    </ul>
+
 {% endblock %}

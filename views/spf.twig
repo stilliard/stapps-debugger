@@ -3,5 +3,28 @@
 {% block title %}SPF Debugger{% endblock %}
 
 {% block content %}
-    <h2>Demo</h2>
+
+    {% if params %}
+    <p>SPF Validation Results:</p>
+    <p>Yes or No?</p>
+    {% else %}
+    <p>Let's check if an email address can send from a given IP.</p>
+    {% endif %}
+
+    <form action="/spf" method="post">
+
+        <p>
+            <label for="ip">IP address:</label>
+            <input type="text" required name="ip" id="ip" pattern="\d+\.\d+\.\d+\.\d+" placeholder="1.2.3.4" value="{{ params.ip }}">
+        </p>
+
+        <p>
+            <label for="email">From email address:</label>
+            <input type="email" required name="email" id="email" placeholder="info@address.com" value="{{ params.email }}">
+        </p>
+
+        <input type="submit" value="Check for SPF issues">
+
+    </form>
+
 {% endblock %}
