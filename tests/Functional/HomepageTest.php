@@ -5,23 +5,25 @@ namespace Tests\Functional;
 class HomepageTest extends BaseTestCase
 {
     /**
-     * Test that the index route returns a rendered response containing the text 'SlimFramework' but not a greeting
+     * Test that the index route loads
      */
     public function testGetHomepageWithoutName()
     {
         $response = $this->runApp('GET', '/');
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertContains('SlimFramework', (string)$response->getBody());
-        $this->assertNotContains('Hello', (string)$response->getBody());
+        $this->assertContains('Debugger', (string)$response->getBody());
     }
 
     /**
-     * Test that the index route with optional name argument returns a rendered greeting
+     * Test sending SPF data
      */
-    public function testGetHomepageWithGreeting()
+    public function testPostSPF()
     {
-        $response = $this->runApp('GET', '/name');
+        $response = $this->runApp('POST', '/spf', [
+            'email' => 'demo@missionresources.co.uk',
+            'ip' => '5.153.230.21',
+        ]);
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertContains('Hello name!', (string)$response->getBody());

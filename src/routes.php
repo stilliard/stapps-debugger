@@ -5,10 +5,19 @@ use Slim\Http\Response;
 
 // Routes
 
-$app->get('/[{name}]', function (Request $request, Response $response, array $args) {
+$app->get('/', function (Request $request, Response $response, array $args) {
     // Sample log message
     $this->logger->info("Slim-Skeleton '/' route");
 
     // Render index view
-    return $this->renderer->render($response, 'index.phtml', $args);
+    return $this->view->render($response, 'index.twig', $args);
+});
+
+$app->post('/spf', function (Request $request, Response $response, array $args) {
+
+    // Sample log message
+    $this->logger->info("SPF check run");
+
+    // Render index view
+    return $this->view->render($response, 'spf.twig', $args);
 });
