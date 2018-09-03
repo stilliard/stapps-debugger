@@ -1,6 +1,8 @@
 <?php
 // DIC configuration
 
+require_once __DIR__ . '/helpers.php';
+
 $container = $app->getContainer();
 
 // view renderer

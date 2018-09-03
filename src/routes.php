@@ -14,8 +14,10 @@ $app->get('/spf', function (Request $request, Response $response) {
 });
 
 $app->post('/spf', function (Request $request, Response $response) {
-    // $this->logger->info("SPF check run");
-    return $this->view->render($response, 'spf.twig', [
-        'params' => $request->getParsedBody(),
-    ]);
+    $params = $request->getParsedBody();
+
+    $domain = domainFromEmail($params['email']);
+    list($status, $spf) = spfChecker($domain, $params['ip']);
+
+    return $this->view->render($response, 'spf.twig', compact('params', 'domain', 'spf', 'status'));
 });

@@ -5,10 +5,44 @@
 {% block content %}
 
     {% if params %}
-    <p>SPF Validation Results:</p>
-    <p>Yes or No?</p>
+
+        <p>SPF Validation Results:</p>
+
+        {% if status == 'PASS' %}
+            <p>
+                <strong>All good!</strong> Looks like the SPF is good for sending from this IP for the given address
+            </p>
+        {% else %}
+
+            {% if status == 'NONE' %}
+                <p>No SPF record setup for the {{ domain }} domain.</p>
+            {% else %}
+                <p>
+                    The current SPF record is returning a <strong>{{ status }}</strong> status, meaning emails may not send from {{ params.ip }}.
+                </p>
+                <p>
+                    The current SPF record is:
+                    <br><code>{{ spf | join('\n') |  nl2br }}</code>
+                </p>
+                {% if spf | length > 1 %}
+                    <p>
+                        Currently there are <strong>{{ spf | length }} SPF records</strong> set while there should only be <strong>1</strong>.
+                        <br>Please combine them to a single SPF record.
+                    </p>
+                {% else %}
+                    <p>
+                        Consider changing this to:
+                        <br><code>{{ spf[0] | replace({ 'v=spf1': 'v=spf1 ipv4:' ~ params.ip }) }}</code>
+                    </p>
+                {% endif %}
+            {% endif %}
+
+        {% endif %}
+
     {% else %}
-    <p>Let's check if an email address can send from a given IP.</p>
+
+        <p>Let's check if an email address can send from a given IP.</p>
+
     {% endif %}
 
     <form action="/spf" method="post">
