@@ -32,7 +32,7 @@
                 {% else %}
                     <p>
                         Consider changing this to:
-                        <br><code>{{ spf[0] | replace({ 'v=spf1': 'v=spf1 ipv4:' ~ params.ip }) }}</code>
+                        <br><code>{{ spf[0] | replace({ 'v=spf1': 'v=spf1 ip4:' ~ params.ip }) }}</code>
                     </p>
                 {% endif %}
             {% endif %}
