@@ -10,7 +10,9 @@ $app->get('/', function (Request $request, Response $response) {
 });
 
 $app->get('/spf', function (Request $request, Response $response) {
-    return $this->view->render($response, 'spf.twig');
+    $params = $request->getQueryParams();
+
+    return $this->view->render($response, 'spf.twig', compact('params'));
 });
 
 $app->post('/spf', function (Request $request, Response $response) {
