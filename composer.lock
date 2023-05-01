@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "956f339aed82dd8ab3cfebf024175e31",
+    "content-hash": "4b759afc25f77560b5df331aefc685f1",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -40,27 +40,27 @@
         },
         {
             "name": "mika56/spfcheck",
-            "version": "1.1.2",
+            "version": "1.1.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Mika56/PHP-SPF-Check.git",
-                "reference": "d5b0aa4fe98577751ccab9e6085f73bd28eccb75"
+                "reference": "30747d43ed036df5593be43369913d837fd9660d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Mika56/PHP-SPF-Check/zipball/d5b0aa4fe98577751ccab9e6085f73bd28eccb75",
-                "reference": "d5b0aa4fe98577751ccab9e6085f73bd28eccb75",
+                "url": "https://api.github.com/repos/Mika56/PHP-SPF-Check/zipball/30747d43ed036df5593be43369913d837fd9660d",
+                "reference": "30747d43ed036df5593be43369913d837fd9660d",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.4",
                 "purplepixie/phpdns": "^2.0",
-                "symfony/http-foundation": "2.8.* || ^3.0"
+                "symfony/http-foundation": "2.8.* || ^3.0 || ^4.0 || ^5.0 || ^6.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "4.8.*",
+                "phpunit/phpunit": "4.8.* || 7.*",
                 "satooshi/php-coveralls": "~1.0",
-                "symfony/phpunit-bridge": "^3.1",
+                "symfony/phpunit-bridge": "^4.2 || 5.*",
                 "symfony/yaml": "~2.1"
             },
             "type": "library",
@@ -84,7 +84,7 @@
                 }
             ],
             "description": "Checks an IP address against a domain's SPF record",
-            "time": "2017-11-28T21:23:46+00:00"
+            "time": "2022-03-23T16:42:31+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -1664,6 +1664,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2017-11-27T05:48:46+00:00"
         },
         {
@@ -2322,6 +2323,86 @@
             "time": "2016-10-03T07:35:21+00:00"
         },
         {
+            "name": "symfony/polyfill-php80",
+            "version": "v1.27.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php80.git",
+                "reference": "7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936",
+                "reference": "7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.27-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php80\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ion Bazan",
+                    "email": "ion.bazan@gmail.com"
+                },
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2022-11-03T14:55:06+00:00"
+        },
+        {
             "name": "symfony/yaml",
             "version": "v4.1.4",
             "source": {
@@ -2385,12 +2466,12 @@
             "version": "1.3.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/webmozart/assert.git",
+                "url": "https://github.com/webmozarts/assert.git",
                 "reference": "0df1908962e7a3071564e857d86874dad1ef204a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/0df1908962e7a3071564e857d86874dad1ef204a",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/0df1908962e7a3071564e857d86874dad1ef204a",
                 "reference": "0df1908962e7a3071564e857d86874dad1ef204a",
                 "shasum": ""
             },
@@ -2440,5 +2521,5 @@
         "php": ">=5.5.0"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "1.1.0"
 }

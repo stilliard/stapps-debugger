@@ -5,7 +5,7 @@
         "slim/slim": "^3.1",
         "monolog/monolog": "^1.17",
         "slim/twig-view": "^2.4",
-        "mika56/spfcheck": "^1.1",
+        "mika56/spfcheck": "1.1.7",
         "slim/csrf": "^0.8.3"
     },
     "require-dev": {
