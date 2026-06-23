@@ -1,18 +1,17 @@
-version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${PORT:-8080}:80"
+    environment:
+      docker: "true"
+    volumes:
+      # Live code: edit on the host, changes show up in the container instantly.
+      - .:/var/www/html
+      # Composer installs into this volume inside the container, so your host
+      # PHP version is irrelevant and host files stay clean.
+      - vendor:/var/www/html/vendor
+    restart: unless-stopped
 
 volumes:
-    logs:
-        driver: local
-
-services:
-    slim:
-        image: php:7-alpine
-        working_dir: /var/www
-        command: php -S 0.0.0.0:8080 -t public
-        environment:
-            docker: "true"
-        ports:
-            - "${PORT:-8080}:8080"
-        volumes:
-            - .:/var/www
-            - logs:/var/www/logs
+  vendor:

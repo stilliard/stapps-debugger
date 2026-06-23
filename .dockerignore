@@ -1,0 +1,6 @@
+.git/
+.claude/
+vendor/
+logs/
+tmp/
+.env

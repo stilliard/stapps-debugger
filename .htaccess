@@ -1,0 +1,27 @@
+# Disable directory listing
+Options -Indexes
+
+# Block all dotfiles (.env, .git, .gitignore, etc.)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Block sensitive project files
+<FilesMatch "^(composer\.(json|lock)|phpunit\.xml|Makefile|Dockerfile|docker-compose\.yml|README\.md)$">
+    Require all denied
+</FilesMatch>
+
+# Block access to non-public directories
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule (^|/)\. - [F,L]
+    RewriteRule ^(src|views|tests|docker|vendor|logs|tmp)(/|$) - [F,L]
+</IfModule>
+
+# Security response headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
