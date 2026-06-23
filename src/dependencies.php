@@ -21,24 +21,26 @@ $container['csrf'] = function ($c) {
     return $guard;
 };
 
-// view renderer
+// view renderer using Twig 3 directly
 $container['view'] = function ($container) {
     $settings = $container->get('settings')['view'];
-    $view = new \Slim\Views\Twig($settings['path'], [
+    $loader = new \Twig\Loader\FilesystemLoader($settings['path']);
+    $twig = new \Twig\Environment($loader, [
         'cache' => $settings['cache'],
         'auto_reload' => true,
         'debug' => true,
     ]);
+    $twig->addExtension(new \Twig\Extension\DebugExtension());
+    $twig->addExtension(new Stapps\TwigExtensions\CsrfExtension($container->get('csrf')));
 
-    // Instantiate and add Slim specific extension
-    $basePath = rtrim(str_ireplace('index.php', '', $container->get('request')->getUri()->getBasePath()), '/');
-    $view->addExtension(new Slim\Views\TwigExtension($container->get('router'), $basePath));
-
-    $view->addExtension(new Twig_Extension_Debug());
-
-    $view->addExtension(new Stapps\TwigExtensions\CsrfExtension($container->get('csrf')));
-
-    return $view;
+    return new class($twig) {
+        public function __construct(private \Twig\Environment $twig) {}
+        public function render($response, string $template, array $data = []) {
+            $body = $this->twig->render($template, $data);
+            $response->getBody()->write($body);
+            return $response;
+        }
+    };
 };
 
 // monolog

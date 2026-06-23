@@ -12,7 +12,7 @@ class SPFpageTest extends BaseTestCase
         $response = $this->runApp('GET', '/spf');
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertContains('SPF Debugger', (string)$response->getBody());
+        $this->assertStringContainsString('SPF Debugger', (string)$response->getBody());
     }
 
     /**
@@ -26,7 +26,7 @@ class SPFpageTest extends BaseTestCase
         ]);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertContains('SPF Validation Results', (string)$response->getBody());
+        $this->assertStringContainsString('SPF Validation Results', (string)$response->getBody());
     }
 
 }

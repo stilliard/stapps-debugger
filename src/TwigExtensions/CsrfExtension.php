@@ -1,27 +1,27 @@
 <?php
-// CSRF protection helper for twig
 
 namespace Stapps\TwigExtensions;
 
-class CsrfExtension extends \Twig_Extension
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
+
+class CsrfExtension extends AbstractExtension
 {
-    public function __construct(\Slim\Csrf\Guard $csrf)
+    public function __construct(private \Slim\Csrf\Guard $csrf)
     {
-        $this->csrf = $csrf;
     }
 
-    public function getFunctions()
+    public function getFunctions(): array
     {
         return [
-            new \Twig_Function('csrf', [$this, 'generateCsrfInputs'], [
+            new TwigFunction('csrf', [$this, 'generateCsrfInputs'], [
                 'is_safe' => ['html'],
             ]),
         ];
     }
 
-    public function generateCsrfInputs()
+    public function generateCsrfInputs(): string
     {
-        // CSRF token name and value
         $csrfNameKey = $this->csrf->getTokenNameKey();
         $csrfValueKey = $this->csrf->getTokenValueKey();
         $csrfName = $this->csrf->getTokenName();
@@ -31,10 +31,5 @@ class CsrfExtension extends \Twig_Extension
             <input type="hidden" name="' . $csrfNameKey . '" value="' . $csrfName . '">
             <input type="hidden" name="' . $csrfValueKey . '" value="' . $csrfValue . '">
         ';
-    }
-
-    public function getName()
-    {
-        return 'slim/csrf';
     }
 }
