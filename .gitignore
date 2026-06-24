@@ -2,3 +2,4 @@
 /logs/*
 /tmp/cache/*
 !.gitkeep
+.phpunit.result.cache
