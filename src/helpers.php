@@ -2,11 +2,12 @@
 // Helpers
 
 use Mika56\SPFCheck\SPFCheck;
-use Mika56\SPFCheck\DNSRecordGetterDirect;
+use Mika56\SPFCheck\DNSRecordGetter;
 
 // spf checker
 function spfChecker(string $domain, string $ip) : array {
-    $getter = new DNSRecordGetterDirect("8.8.8.8");
+    // system resolver, as DNSRecordGetterDirect drops every record with phpdns 2.3+ (numeric record types)
+    $getter = new DNSRecordGetter();
     $checker = new SPFCheck($getter);
     $spf = $getter->getSPFRecordForDomain($domain);
     $status = $checker->isIPAllowed($ip, $domain);

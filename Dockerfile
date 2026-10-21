@@ -11,6 +11,9 @@ RUN a2enmod rewrite headers
 # Composer (from the official image).
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Use PHP's recommended production settings as the base php.ini.
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
 # Always log PHP errors to stderr so they show up in `docker logs`.
 COPY docker/php-logging.ini /usr/local/etc/php/conf.d/php-logging.ini
 
