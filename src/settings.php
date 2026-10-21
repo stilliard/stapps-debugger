@@ -1,7 +1,7 @@
 <?php
 return [
     'settings' => [
-        'displayErrorDetails' => true, // set to false in production
+        'displayErrorDetails' => false, // true only for local debugging
         'addContentLengthHeader' => false, // Allow the web server to send the content-length header
 
         // View settings
@@ -13,7 +13,7 @@ return [
         // Monolog settings
         'logger' => [
             'name' => 'stapps-debugger',
-            'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
+            'path' => getenv('docker') ? 'php://stdout' : __DIR__ . '/../logs/app.log',
             'level' => \Monolog\Logger::DEBUG,
         ],
     ],
