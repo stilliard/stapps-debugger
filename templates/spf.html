@@ -2,34 +2,34 @@
 
 {% block content %}
 
-    {% if let Some(status) = status %}
+    {% if let Some(check) = check %}
 
         <p>SPF Validation Results:</p>
 
-        {% if status == "PASS" %}
+        {% if check.status == "PASS" %}
             <p>
                 <strong>All good!</strong> Looks like the SPF is good for sending from this IP for the given address
             </p>
         {% else %}
 
-            {% if status == "NONE" %}
+            {% if check.status == "NONE" %}
                 <p>No SPF record setup for the {{ domain }} domain.</p>
             {% else %}
                 <p>
-                    The current SPF record is returning a <strong>{{ status }}</strong> status, meaning emails may not send from {{ ip }}.
+                    The current SPF record is returning a <strong>{{ check.status }}</strong> status, meaning emails may not send from {{ ip }}.
                 </p>
-                {% if !records.is_empty() %}
+                {% if !check.records.is_empty() %}
                     <p>
                         The current SPF record is:
-                        <br><code>{% for record in records %}{{ record }}{% if !loop.last %}<br>{% endif %}{% endfor %}</code>
+                        <br><code>{% for record in check.records %}{{ record }}{% if !loop.last %}<br>{% endif %}{% endfor %}</code>
                     </p>
                 {% endif %}
-                {% if records.len() > 1 %}
+                {% if check.records.len() > 1 %}
                     <p>
-                        Currently there are <strong>{{ records.len() }} SPF records</strong> set while there should only be <strong>1</strong>.
+                        Currently there are <strong>{{ check.records.len() }} SPF records</strong> set while there should only be <strong>1</strong>.
                         <br>Please combine them to a single SPF record.
                     </p>
-                {% else if let Some(suggestion) = suggestion %}
+                {% else if let Some(suggestion) = check.suggestion %}
                     <p>
                         Consider changing this to:
                         <br><code>{{ suggestion }}</code>

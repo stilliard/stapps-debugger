@@ -6,7 +6,13 @@ Currently supports:
 
 - Check if an email can be sent from a given IP based on an SPF record.
 
-It's a small Rust app: the whole server is [`src/main.rs`](src/main.rs), with the pages in [`templates/`](templates/). The SPF check uses the [mail-auth](https://crates.io/crates/mail-auth) library, looking up DNS through the system resolver.
+It's a small Rust app, split up much like the PHP version was:
+
+- [`src/main.rs`](src/main.rs) starts the server
+- [`src/routes.rs`](src/routes.rs) has the URLs and what each one does
+- [`src/spf.rs`](src/spf.rs) checks SPF records, using the [mail-auth](https://crates.io/crates/mail-auth) library and the system's DNS resolver
+- [`src/pages.rs`](src/pages.rs) renders the pages from the templates in [`templates/`](templates/)
+- [`src/security_headers.rs`](src/security_headers.rs) adds security headers to every response
 
 Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. The check itself is a POST, so email addresses stay out of URLs and access logs.
 
