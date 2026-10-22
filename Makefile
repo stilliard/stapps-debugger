@@ -3,7 +3,7 @@ export
 
 PROJECT=stapps-debugger
 
-.PHONY: serve test test-dns up down
+.PHONY: serve test test-dns docker-up docker-down
 
 serve:
 	PORT=$${PORT:-8083} cargo run
@@ -15,8 +15,8 @@ test:
 test-dns:
 	cargo test -- --include-ignored
 
-up:
+docker-up:
 	docker compose -p ${PROJECT} up --build
 
-down:
+docker-down:
 	docker compose -p ${PROJECT} down

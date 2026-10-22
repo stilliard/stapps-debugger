@@ -21,7 +21,7 @@ Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. T
 
 With Docker (no Rust needed), available at http://127.0.0.1:8083 (set `PORT` in `.env` to change it):
 
-`make up` (or `docker compose -p stapps-debugger up --build`)
+`make docker-up` (or `docker compose -p stapps-debugger up --build`)
 
 Or with Rust installed (via [rustup](https://rustup.rs)):
 
