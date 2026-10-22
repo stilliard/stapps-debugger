@@ -12,9 +12,10 @@ It's a small Rust app, split up much like the PHP version was:
 - [`src/routes.rs`](src/routes.rs) has the URLs and what each one does
 - [`src/spf.rs`](src/spf.rs) checks SPF records, using the [mail-auth](https://crates.io/crates/mail-auth) library and the system's DNS resolver
 - [`src/pages.rs`](src/pages.rs) renders the pages from the templates in [`templates/`](templates/)
+- [`src/rate_limit.rs`](src/rate_limit.rs) limits how many checks each visitor can run
 - [`src/security_headers.rs`](src/security_headers.rs) adds security headers to every response
 
-Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. The check itself is a POST, so email addresses stay out of URLs and access logs.
+Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. The check itself is a POST, so email addresses stay out of URLs and access logs. Each visitor can run 20 checks an hour, going by the `X-Forwarded-For` header Dokku's nginx sets on Ba1 (there's no limit without it, e.g. locally).
 
 
 ## Run locally
