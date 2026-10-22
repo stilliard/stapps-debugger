@@ -1,16 +1,22 @@
-.PHONY: up down shell test
+-include .env
+export
 
 PROJECT=stapps-debugger
+
+.PHONY: serve test test-dns up down
+
+serve:
+	PORT=$${PORT:-8083} cargo run
+
+test:
+	cargo test
+
+# also checks real domains, so needs internet access
+test-dns:
+	cargo test -- --include-ignored
 
 up:
 	docker compose -p ${PROJECT} up --build
 
 down:
 	docker compose -p ${PROJECT} down
-
-shell:
-	docker compose -p ${PROJECT} run --rm app bash
-
-test:
-	# one container, as each `run` boots the entrypoint's `composer install --no-dev`, which removes phpunit again
-	docker compose -p ${PROJECT} run --rm app sh -c "composer install --no-interaction --no-progress && vendor/bin/phpunit"

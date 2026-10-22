@@ -43,6 +43,7 @@ code {
     background-color: #EEE;
     padding: .5em;
     display: inline-block;
+    overflow-wrap: anywhere;
 }
 
 /* modules */
