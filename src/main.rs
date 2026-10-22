@@ -106,13 +106,19 @@ async fn spf(State(dns): State<Dns>, Query(params): Query<HashMap<String, String
 
     // suggest adding the IP when that would fix it
     if page.records.len() == 1 && ["FAIL", "SOFTFAIL", "NEUTRAL"].contains(&status.as_str()) {
-        let mechanism = if ip.is_ipv4() { "ip4" } else { "ip6" };
-        page.suggestion =
-            Some(page.records[0].replacen("v=spf1", &format!("v=spf1 {mechanism}:{ip}"), 1));
+        page.suggestion = Some(with_ip(&page.records[0], ip));
     }
 
     page.status = Some(status);
     render(page)
+}
+
+/// The SPF record with the IP allowed first, e.g. "v=spf1 ip4:1.2.3.4 include:… ~all"
+fn with_ip(record: &str, ip: IpAddr) -> String {
+    let mechanism = if ip.is_ipv4() { "ip4" } else { "ip6" };
+    // spf_records() only returns records starting with "v=spf1", in any case
+    let rest = &record["v=spf1".len()..];
+    format!("v=spf1 {mechanism}:{ip}{rest}")
 }
 
 /// The domain's SPF records, to show alongside the result
@@ -228,6 +234,26 @@ mod tests {
     async fn invalid_ips_are_reported() {
         let (_, page) = get("/spf?ip=nope&email=a@example.com").await;
         assert!(page.contains("\"nope\" doesn't look like an IP address."));
+    }
+
+    #[tokio::test]
+    async fn a_missing_email_just_shows_the_form() {
+        let (_, page) = get("/spf?ip=1.2.3.4").await;
+        assert!(!page.contains("look like an IP address"));
+        assert!(page.contains("Let's check if an email address can send from a given IP."));
+    }
+
+    #[test]
+    fn suggestions_add_the_ip_whatever_the_case_of_the_record() {
+        let ipv4 = "1.2.3.4".parse().unwrap();
+        let ipv6 = "2001:db8::1".parse().unwrap();
+
+        assert_eq!(
+            with_ip("v=spf1 include:_spf.example.com ~all", ipv4),
+            "v=spf1 ip4:1.2.3.4 include:_spf.example.com ~all"
+        );
+        assert_eq!(with_ip("V=SPF1 -all", ipv4), "v=spf1 ip4:1.2.3.4 -all");
+        assert_eq!(with_ip("v=spf1", ipv6), "v=spf1 ip6:2001:db8::1");
     }
 
     #[tokio::test]
