@@ -19,26 +19,36 @@ Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. T
 
 ## Run locally
 
-With Docker (no Rust needed), available at http://127.0.0.1:8083 (set `PORT` in `.env` to change it):
-
-`make docker-up` (or `docker compose -p stapps-debugger up --build`)
+With Docker (no Rust needed):
+```bash
+cp .env.example .env  # optionally adjust PORT
+make docker-up        # build and run, Ctrl+C to stop
+```
 
 Or with Rust installed (via [rustup](https://rustup.rs)):
+```bash
+make serve     # cargo run
+make test      # cargo test
+make test-dns  # also checks real domains' SPF results, so needs internet access
+```
 
-`make serve` (`cargo run`)
+The app runs on `http://localhost:8083` by default. Set `PORT` in `.env` to use a different port. Changes to `templates/` and `public/` need a rebuild/restart to show up, as they're built into the binary.
 
-Changes to `templates/` and `public/` need a rebuild/restart to show up, as they're built into the binary.
+## Deploy (Dokku on Ba1)
 
-Run the tests with `make test` (`cargo test`), or `make test-dns` to also check real domains' SPF results, which needs internet access.
-
-## Deploy (Ba1 server)
-
-Runs as a Docker container bound to `127.0.0.1:${PORT}`, behind the host reverse proxy for `debugger.stapps.io`. The `Dockerfile` compiles the app and ships just the binary in an empty (`scratch`) image, so rebuild after pulling.
+Dokku builds the `Dockerfile`, which compiles the app and ships just the binary in an empty (`scratch`) image.
 
 ```bash
-cd /srv/debugger
-git pull
-docker compose -p stapps-debugger build --pull
-docker compose -p stapps-debugger up -d --force-recreate
-curl -I http://127.0.0.1:8083/
+git remote add dokku dokku@<ba1-host>:debugger  # first time only
+git push dokku master:main
+curl -I https://debugger.stapps.io/
+```
+
+The app listens on `$PORT` (8080 in the image). Dokku would serve that on port 8080 too, so the app was set up with:
+
+```bash
+dokku apps:create debugger
+dokku domains:set debugger debugger.stapps.io
+dokku ports:set debugger http:80:8080 https:443:8080
+tar cf - server.crt server.key | ssh dokku@<ba1-host> certs:add debugger  # the stapps.io Cloudflare origin cert
 ```

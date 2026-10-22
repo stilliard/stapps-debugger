@@ -1,6 +1,0 @@
-services:
-  app:
-    build: .
-    ports:
-      - "127.0.0.1:${PORT:-8083}:8080"
-    restart: unless-stopped
