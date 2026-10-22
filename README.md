@@ -8,7 +8,7 @@ Currently supports:
 
 It's a small Rust app: the whole server is [`src/main.rs`](src/main.rs), with the pages in [`templates/`](templates/). The SPF check uses the [mail-auth](https://crates.io/crates/mail-auth) library, looking up DNS through the system resolver.
 
-Checks can be linked to directly, e.g. `/spf?ip=1.2.3.4&email=info@example.com`.
+Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. The check itself is a POST, so email addresses stay out of URLs and access logs.
 
 
 ## Run locally
