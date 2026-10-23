@@ -6,50 +6,37 @@ Currently supports:
 
 - Check if an email can be sent from a given IP based on an SPF record.
 
-It's a small Rust app, split up much like the PHP version was:
+It's a static site on Cloudflare Pages, with no server. The SPF checks run in the visitor's browser, looking up DNS with [Cloudflare's DNS over HTTPS](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/), so email addresses never leave the browser, and there's nothing for bots to abuse.
 
-- [`src/main.rs`](src/main.rs) starts the server
-- [`src/routes.rs`](src/routes.rs) has the URLs and what each one does
-- [`src/spf.rs`](src/spf.rs) checks SPF records, using the [mail-auth](https://crates.io/crates/mail-auth) library and the system's DNS resolver
-- [`src/pages.rs`](src/pages.rs) renders the pages from the templates in [`templates/`](templates/)
-- [`src/rate_limit.rs`](src/rate_limit.rs) limits how many checks each visitor can run
-- [`src/security_headers.rs`](src/security_headers.rs) adds security headers to every response
+Everything Pages serves is in [`public/`](public/):
 
-Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. The check itself is a POST, so email addresses stay out of URLs and access logs. Each visitor can run 20 checks an hour, going by the `X-Forwarded-For` header Dokku's nginx sets on Ba1 (there's no limit without it, e.g. locally).
+- [`index.html`](public/index.html), [`spf.html`](public/spf.html) and [`404.html`](public/404.html) are the pages, styled by [`css/app.css`](public/css/app.css)
+- [`js/spf-page.js`](public/js/spf-page.js) runs the SPF page's form and shows the results
+- [`js/spf.js`](public/js/spf.js) checks SPF records, following [RFC 7208](https://www.rfc-editor.org/rfc/rfc7208) for everything real records use, but skipping some of its stricter checks on broken records
+- [`js/dns.js`](public/js/dns.js) does the DNS lookups
+- [`_headers`](public/_headers) adds security headers to every response
+
+Links can prefill the SPF form, e.g. `/spf?ip=1.2.3.4&email=info@example.com`. There's no build step or npm dependencies; the JavaScript is served as it is.
 
 
 ## Run locally
 
-With Docker (no Rust needed):
+With [Node](https://nodejs.org) 22+ installed:
 ```bash
-cp .env.example .env  # optionally adjust PORT
-make docker-up        # build and run, Ctrl+C to stop
-```
-
-Or with Rust installed (via [rustup](https://rustup.rs)):
-```bash
-make serve     # cargo run
-make test      # cargo test
+make serve     # serves public/ like Pages does, using Cloudflare's wrangler
+make test      # node --test
 make test-dns  # also checks real domains' SPF results, so needs internet access
 ```
 
-The app runs on `http://localhost:8083` by default. Set `PORT` in `.env` to use a different port. Changes to `templates/` and `public/` need a rebuild/restart to show up, as they're built into the binary.
+The site runs on `http://localhost:8083` by default. Set `PORT` in `.env` to use a different port (see `.env.example`).
 
-## Deploy (Dokku on Ba1)
+## Deploy (Cloudflare Pages)
 
-Dokku builds the `Dockerfile`, which compiles the app and ships just the binary in an empty (`scratch`) image.
+Pages deploys from GitHub on every push: `master` goes live, and other branches get preview URLs.
 
-```bash
-git remote add dokku dokku@<ba1-host>:debugger  # first time only
-git push dokku master:main
-curl -I https://debugger.stapps.io/
-```
+It's set up in the Cloudflare dashboard (Workers & Pages → Create → Pages → Connect to Git) with:
 
-The app listens on `$PORT` (8080 in the image). Dokku would serve that on port 8080 too, so the app was set up with:
-
-```bash
-dokku apps:create debugger
-dokku domains:set debugger debugger.stapps.io
-dokku ports:set debugger http:80:8080 https:443:8080
-tar cf - server.crt server.key | ssh dokku@<ba1-host> certs:add debugger  # the stapps.io Cloudflare origin cert
-```
+- Production branch: `master`
+- Build command: none
+- Build output directory: `public`
+- Custom domain: `debugger.stapps.io`
