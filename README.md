@@ -6,7 +6,9 @@ Currently supports:
 
 - Check if an email can be sent from a given IP based on an SPF record.
 
-It's a static site on Cloudflare Pages, with no server. The SPF checks run in the visitor's browser, looking up DNS with [Cloudflare's DNS over HTTPS](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/), so email addresses never leave the browser, and there's nothing for bots to abuse.
+It's a static site on Cloudflare Pages, with no server. The SPF checks run in the visitor's browser, looking up DNS with [Cloudflare's DNS over HTTPS](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/), so email addresses aren't sent to us, and there's nothing for bots to abuse.
+
+The DNS lookups are the same ones a mail server makes when checking SPF, so Cloudflare's DNS (and the DNS servers for the domains in the record) see the email's domain. The few records that use the `%{l}` or `%{s}` macros put the part before the `@` in a lookup too.
 
 Everything Pages serves is in [`public/`](public/):
 

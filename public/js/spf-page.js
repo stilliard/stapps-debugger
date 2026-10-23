@@ -1,5 +1,5 @@
 // The SPF page. Links can prefill the form, e.g. /spf?ip=1.2.3.4&email=info@example.com,
-// and checks run here in the browser, so email addresses never leave it.
+// and checks run here in the browser, so email addresses aren't sent to us.
 
 import { check, parseIp } from './spf.js';
 

@@ -7,7 +7,8 @@ import { resolve as dohResolve, DnsError } from './dns.js';
 // SPF allows 10 lookups per check (include, a, mx, ptr, exists and redirect,
 // all together), the limit busy records most often go over
 const MAX_LOOKUPS = 10;
-// and looking up addresses for 10 MX or PTR names per mechanism
+// and 10 MX names per mx (any more is a permerror), or PTR names per ptr (the
+// rest are ignored)
 const MAX_NAMES = 10;
 
 const QUALIFIERS = { '+': 'pass', '-': 'fail', '~': 'softfail', '?': 'neutral' };
@@ -124,13 +125,16 @@ async function matches(state, domain, { name, value }) {
 
     switch (name) {
         case 'all':
+            if (value) {
+                throw invalid(name + value);
+            }
             return true;
 
         case 'ip4':
         case 'ip6': {
-            const [network, prefix] = value.slice(1).split('/');
+            const [, network = '', prefix] = value.match(/^:([^/]+)(?:\/(\d+))?$/) ?? [];
             const parsed = parseIp(network);
-            if (!value.startsWith(':') || parsed?.version !== Number(name[2])) {
+            if (parsed?.version !== Number(name[2]) || prefix > parsed.bytes.length * 8) {
                 throw invalid(name + value);
             }
             return inNetwork(ip, parsed, prefix);
@@ -156,7 +160,10 @@ async function matches(state, domain, { name, value }) {
             }
             const [, spec, prefix4, prefix6] = parts;
             const host = target(state, spec, domain);
-            const hosts = name === 'a' ? [host] : (await lookup(state, host, 'MX')).slice(0, MAX_NAMES);
+            const hosts = name === 'a' ? [host] : await lookup(state, host, 'MX');
+            if (hosts.length > MAX_NAMES) {
+                throw new Stop('permerror', `${host} has more than ${MAX_NAMES} MX records, which is SPF's limit for mx.`);
+            }
             for (const host of hosts) {
                 const addresses = await lookupAddresses(state, host);
                 if (addresses.some(address => inNetwork(ip, address, ip.version === 4 ? prefix4 : prefix6))) {

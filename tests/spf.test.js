@@ -140,6 +140,10 @@ test('invalid mechanisms are permerrors', async () => {
         'v=spf1 ip4:nope -all',
         'v=spf1 ip6:192.0.2.1 -all',
         'v=spf1 include -all',
+        'v=spf1 all:example.com',
+        'v=spf1 ip4:192.0.2.0/33 -all',
+        'v=spf1 ip4:192.0.2.0/abc -all',
+        'v=spf1 ip6:2001:db8::/129 -all',
         // unknown mechanisms, even after a match
         'v=spf1 ip4:192.0.2.1 foo:bar',
     ];
@@ -173,6 +177,8 @@ test('errors say why', async () => {
     assert.equal(await reason({ 'example.com': spf('v=spf1 include:Nope.example -all') }), 'It includes nope.example, which has no SPF record.');
     assert.equal(await reason({ 'example.com': spf('v=spf1 redirect=nope.example') }), 'It redirects to nope.example, which has no SPF record.');
     assert.match(await reason({ 'example.com': { TXT: 'SERVFAIL' } }), /Looking up example.com's TXT records failed/);
+    const manyMx = { 'example.com': { ...spf('v=spf1 mx -all'), MX: Array.from({ length: 11 }, (_, i) => `mx${i}.example.com`) } };
+    assert.equal(await reason(manyMx), 'example.com has more than 10 MX records, which is SPF\'s limit for mx.');
     assert.equal(await reason({ 'example.com': spf('v=spf1 -all') }), null);
 });
 
