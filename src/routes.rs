@@ -6,18 +6,20 @@ use std::sync::Arc;
 
 use axum::Router;
 use axum::extract::{Form, Query, State};
-use axum::http::{StatusCode, header};
+use axum::http::{HeaderMap, StatusCode, header};
 use axum::middleware::map_response;
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use mail_auth::MessageAuthenticator;
 
 use crate::pages::{IndexPage, SpfPage, render};
+use crate::rate_limit::RateLimiter;
 use crate::{security_headers, spf};
 
 /// What the handlers share
 pub struct AppState {
     pub dns: MessageAuthenticator,
+    pub checks: RateLimiter,
 }
 
 impl AppState {
@@ -26,6 +28,7 @@ impl AppState {
             // the system resolver, as hickory fails on large responses (like github.com's
             // TXT records) when given a public resolver directly
             dns: MessageAuthenticator::new_system_conf().expect("could not set up DNS"),
+            checks: RateLimiter::default(),
         }
     }
 }
@@ -53,6 +56,7 @@ async fn spf_form(Query(params): Query<HashMap<String, String>>) -> Response {
 /// addresses stay out of URLs, browser history and access logs.
 async fn spf_check(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Form(params): Form<HashMap<String, String>>,
 ) -> Response {
     let mut page = SpfPage::new(&params);
@@ -64,6 +68,10 @@ async fn spf_check(
         page.invalid_ip = true;
         return render(page);
     };
+    if !state.checks.allow(&headers) {
+        page.rate_limited = true;
+        return (StatusCode::TOO_MANY_REQUESTS, render(page)).into_response();
+    }
 
     page.check = Some(spf::check(&state.dns, ip, &page.domain, &page.email).await);
     render(page)
@@ -98,10 +106,11 @@ mod tests {
     }
 
     async fn send(request: Request<Body>) -> (StatusCode, String) {
-        let response = app(Arc::new(AppState::new()))
-            .oneshot(request)
-            .await
-            .unwrap();
+        send_to(Arc::new(AppState::new()), request).await
+    }
+
+    async fn send_to(state: Arc<AppState>, request: Request<Body>) -> (StatusCode, String) {
+        let response = app(state).oneshot(request).await.unwrap();
         let status = response.status();
         let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -151,6 +160,27 @@ mod tests {
         let (_, page) = post("/spf", "ip=1.2.3.4").await;
         assert!(!page.contains("look like an IP address"));
         assert!(page.contains("Let's check if an email address can send from a given IP."));
+    }
+
+    #[tokio::test]
+    async fn too_many_checks_are_refused_before_any_dns_lookups() {
+        let state = Arc::new(AppState::new());
+        let mut visitor = HeaderMap::new();
+        visitor.insert("x-forwarded-for", "192.0.2.1".parse().unwrap());
+        while state.checks.allow(&visitor) {}
+
+        let request = Request::builder()
+            .method("POST")
+            .uri("/spf")
+            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .header("x-forwarded-for", "192.0.2.1")
+            .body(Body::from("ip=1.2.3.4&email=a@example.com"))
+            .unwrap();
+        let (status, page) = send_to(state, request).await;
+
+        assert_eq!(status, StatusCode::TOO_MANY_REQUESTS);
+        assert!(page.contains("You've run a lot of checks recently"));
+        assert!(page.contains(r#"value="1.2.3.4""#));
     }
 
     #[tokio::test]

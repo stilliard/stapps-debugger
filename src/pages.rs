@@ -22,6 +22,7 @@ pub struct SpfPage {
     pub email: String,
     pub domain: String,
     pub invalid_ip: bool,
+    pub rate_limited: bool,
     pub check: Option<SpfCheck>,
 }
 
