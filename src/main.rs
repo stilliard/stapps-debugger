@@ -2,6 +2,7 @@
 //! are in routes.rs.
 
 mod pages;
+mod rate_limit;
 mod routes;
 mod security_headers;
 mod spf;

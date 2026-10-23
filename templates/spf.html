@@ -39,6 +39,10 @@
 
         {% endif %}
 
+    {% else if rate_limited %}
+
+        <p>You've run a lot of checks recently, please try again in a little while.</p>
+
     {% else if invalid_ip %}
 
         <p>"{{ ip }}" doesn't look like an IP address.</p>
