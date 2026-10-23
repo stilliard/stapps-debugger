@@ -1,0 +1,8 @@
+# Cloudflare Pages adds these to every response.
+# The SPF checks fetch DNS from cloudflare-dns.com, so that's the only other site the pages can connect to.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Content-Security-Policy: default-src 'self'; style-src 'self' https://cdnjs.cloudflare.com; connect-src https://cloudflare-dns.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'

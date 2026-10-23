@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <script type="module" src="/js/spf-page.js"></script>
+    <title>SPF Debugger</title>
+</head>
+<body>
+
+    <header>
+        <h1><a href="/">SPF Debugger</a></h1>
+    </header>
+
+    <div id="message" aria-live="polite">
+        <p>Let's check if an email address can send from a given IP.</p>
+    </div>
+
+    <noscript>
+        <p>The check runs in your browser, so needs JavaScript turned on.</p>
+    </noscript>
+
+    <form>
+
+        <p>
+            <label for="ip">IP address:</label>
+            <input type="text" required name="ip" id="ip" placeholder="1.2.3.4">
+        </p>
+
+        <p>
+            <label for="email">From email address:</label>
+            <input type="email" required name="email" id="email" placeholder="info@address.com">
+        </p>
+
+        <input type="submit" value="Check for SPF issues">
+
+    </form>
+
+    <!-- The messages spf-page.js shows, filling in each data-field, and leaving
+         out each data-if part when there's nothing for it -->
+
+    <template id="invalid-ip">
+        <p>"<span data-field="ip"></span>" doesn't look like an IP address.</p>
+    </template>
+
+    <template id="checking">
+        <p>Checking…</p>
+    </template>
+
+    <template id="error">
+        <p>Sorry, something went wrong running the check, please try again.</p>
+    </template>
+
+    <template id="pass">
+        <p>SPF Validation Results:</p>
+        <p>
+            <strong>All good!</strong> Looks like the SPF is good for sending from this IP for the given address
+        </p>
+    </template>
+
+    <template id="none">
+        <p>SPF Validation Results:</p>
+        <p>No SPF record setup for the <span data-field="domain"></span> domain.</p>
+    </template>
+
+    <template id="problem">
+        <p>SPF Validation Results:</p>
+        <p>
+            The current SPF record is returning a <strong data-field="status"></strong> status, meaning emails may not send from <span data-field="ip"></span>.
+        </p>
+        <p data-if="reason" data-field="reason"></p>
+        <p data-if="records">
+            The current SPF record is:
+            <br><code data-field="records"></code>
+        </p>
+        <p data-if="multipleRecords">
+            Currently there are <strong><span data-field="recordCount"></span> SPF records</strong> set while there should only be <strong>1</strong>.
+            <br>Please combine them to a single SPF record.
+        </p>
+        <p data-if="suggestion">
+            Consider changing this to:
+            <br><code data-field="suggestion"></code>
+        </p>
+    </template>
+
+    <footer>
+
+        <p><a href="https://github.com/stilliard/stapps-debugger">Any ideas for improvements?
+        <br>Add feature requests &amp; bug reports as issues here.</a></p>
+
+    </footer>
+
+</body>
+</html>

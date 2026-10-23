@@ -1,21 +1,17 @@
 -include .env
 export
 
-PROJECT=stapps-debugger
 PORT ?= 8083
 
-.PHONY: serve test test-dns docker-up
+.PHONY: serve test test-dns
 
+# serves public/ like Cloudflare Pages does, e.g. /spf for spf.html, with _headers and 404.html
 serve:
-	cargo run
+	npx wrangler@4 pages dev public --port $(PORT)
 
 test:
-	cargo test
+	node --test tests/spf.test.js
 
 # also checks real domains, so needs internet access
 test-dns:
-	cargo test -- --include-ignored
-
-docker-up:
-	docker build -t $(PROJECT) .
-	docker run --rm -p 127.0.0.1:$(PORT):8080 $(PROJECT)
+	node --test tests/*.test.js
