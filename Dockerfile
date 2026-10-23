@@ -1,31 +1,26 @@
-FROM php:8.5-apache
+# Build stage: compile a single static binary, with the templates and CSS built in
+FROM rust:1-alpine AS build
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends git unzip \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache musl-dev
 
-# Enable mod_rewrite for Slim routing and mod_headers for security headers.
-RUN a2enmod rewrite headers
+WORKDIR /app
 
-# Composer (from the official image).
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY public ./public
+COPY templates ./templates
 
-# Use PHP's recommended production settings as the base php.ini.
-RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+RUN cargo build --release --locked
 
-# Always log PHP errors to stderr so they show up in `docker logs`.
-COPY docker/php-logging.ini /usr/local/etc/php/conf.d/php-logging.ini
+# Run stage: just the binary (no shell, no OS packages, nothing to patch)
+FROM scratch
 
-# Point Apache's document root at public/ so Slim's front controller is used.
-COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
+COPY --from=build /app/target/release/stapps-debugger /stapps-debugger
 
-WORKDIR /var/www/html
+# run as "nobody" rather than root
+USER 65534
 
-# Code and vendor/ are mounted at runtime (see docker-compose.yml).
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENV PORT=8080
+EXPOSE 8080
 
-EXPOSE 80
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["apache2-foreground"]
+ENTRYPOINT ["/stapps-debugger"]

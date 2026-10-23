@@ -1,6 +1,5 @@
-.git/
-.claude/
-vendor/
-logs/
-tmp/
+.git
+.claude
 .env
+target
+*.swp

@@ -1,5 +1,3 @@
-/vendor/
-/logs/*
-/tmp/cache/*
-!.gitkeep
-.phpunit.result.cache
+.env
+/target
+/.claude/worktrees/
