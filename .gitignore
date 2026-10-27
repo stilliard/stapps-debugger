@@ -1,3 +1,4 @@
 .env
 /.wrangler/
 /.claude/worktrees/
+/.playwright-cli/

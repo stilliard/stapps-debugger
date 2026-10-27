@@ -5,4 +5,4 @@
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
-  Content-Security-Policy: default-src 'self'; style-src 'self' https://cdnjs.cloudflare.com; connect-src https://cloudflare-dns.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; connect-src https://cloudflare-dns.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'

@@ -192,7 +192,84 @@ test('the records are shown, with a suggestion when adding the IP would fix it',
         domain: 'example.com',
         records: ['v=spf1 include:_spf.example.net ~all'],
         suggestion: 'v=spf1 ip4:192.0.2.1 include:_spf.example.net ~all',
+        lookups: 1,
+        trace: [
+            { term: 'include:_spf.example.net', detail: '1 lookup, no match', outcome: 'no match' },
+            { term: '~all', detail: 'matches any IP', outcome: 'softfail' },
+        ],
     });
+});
+
+test('the trace shows how each term was checked, skipping the ones after a match', async () => {
+    const zone = {
+        'example.com': spf('v=spf1 include:_spf.example.net ip4:192.0.2.0/24 -all redirect=other.example'),
+        '_spf.example.net': spf('v=spf1 include:_spf2.example.net -all'),
+        '_spf2.example.net': spf('v=spf1 ip4:198.51.100.1 -all'),
+    };
+    const result = await check('192.0.2.1', 'someone@example.com', fakeDns(zone));
+
+    assert.equal(result.lookups, 2);
+    assert.deepEqual(result.trace, [
+        { term: 'include:_spf.example.net', detail: '2 lookups, no match', outcome: 'no match' },
+        { term: 'ip4:192.0.2.0/24', detail: '192.0.2.1 is in range', outcome: 'pass' },
+        { term: '-all', detail: 'not evaluated', outcome: 'skipped' },
+        { term: 'redirect=other.example', detail: 'not evaluated', outcome: 'skipped' },
+    ]);
+});
+
+test('the trace counts the lookups for a and mx', async () => {
+    const zone = {
+        'example.com': { ...spf('v=spf1 a mx -all'), A: ['198.51.100.1'], MX: ['mx1.example.com', 'mx2.example.com'] },
+        'mx2.example.com': { A: ['192.0.2.1'] },
+    };
+    const result = await check('192.0.2.1', 'someone@example.com', fakeDns(zone));
+
+    // mx counts as one lookup, however many MX names it checks
+    assert.equal(result.lookups, 2);
+    assert.deepEqual(result.trace, [
+        { term: 'a', detail: '1 lookup, no match', outcome: 'no match' },
+        { term: 'mx', detail: '1 lookup, matched', outcome: 'pass' },
+        { term: '-all', detail: 'not evaluated', outcome: 'skipped' },
+    ]);
+});
+
+test('the trace shows redirects, and the term that stopped the check', async () => {
+    const redirected = await check('192.0.2.1', 'someone@example.com', fakeDns({
+        'example.com': spf('v=spf1 ip4:198.51.100.1 redirect=_spf.example.net'),
+        '_spf.example.net': spf('v=spf1 -all'),
+    }));
+    assert.deepEqual(redirected.trace, [
+        { term: 'ip4:198.51.100.1', detail: '192.0.2.1 isn\'t in range', outcome: 'no match' },
+        { term: 'redirect=_spf.example.net', detail: '1 lookup, gave fail', outcome: 'fail' },
+    ]);
+
+    const broken = await check('192.0.2.1', 'someone@example.com', fakeDns({
+        'example.com': spf('v=spf1 include:nope.example -all'),
+    }));
+    assert.deepEqual(broken.trace, [
+        { term: 'include:nope.example', detail: 'It includes nope.example, which has no SPF record.', outcome: 'error' },
+    ]);
+
+    const failed = await check('192.0.2.1', 'someone@example.com', fakeDns({
+        'example.com': spf('v=spf1 a:broken.example.com -all'),
+        'broken.example.com': { A: 'SERVFAIL' },
+    }));
+    assert.equal(failed.status, 'TEMPERROR');
+    assert.deepEqual(failed.trace, [
+        { term: 'a:broken.example.com', detail: failed.reason, outcome: 'error' },
+    ]);
+
+    const tooMany = { 'example.com': spf('v=spf1 ip4:198.51.100.1 include:a0.example.com -all') };
+    for (let i = 0; i < 11; i++) {
+        tooMany[`a${i}.example.com`] = spf(`v=spf1 include:a${i + 1}.example.com`);
+    }
+    const limited = await check('192.0.2.1', 'someone@example.com', fakeDns(tooMany));
+    assert.equal(limited.lookups, 11);
+    assert.deepEqual(limited.trace.map(({ outcome }) => outcome), ['no match', 'error']);
+    assert.match(limited.trace[1].detail, /more than 10 DNS lookups/);
+
+    // records that don't parse, or aren't there, have nothing to trace
+    assert.deepEqual((await check('192.0.2.1', 'someone@example.com', fakeDns({}))).trace, []);
 });
 
 test('suggestions add the IP whatever the case of the record', () => {

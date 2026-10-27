@@ -6,7 +6,7 @@ import { resolve as dohResolve, DnsError } from './dns.js';
 
 // SPF allows 10 lookups per check (include, a, mx, ptr, exists and redirect,
 // all together), the limit busy records most often go over
-const MAX_LOOKUPS = 10;
+export const MAX_LOOKUPS = 10;
 // and 10 MX names per mx (any more is a permerror), or PTR names per ptr (the
 // rest are ignored)
 const MAX_NAMES = 10;
@@ -30,8 +30,9 @@ const invalid = term => new Stop('permerror', `"${term}" isn't valid in an SPF r
 /**
  * Check if `ip` may send email from `email`, giving the result (PASS, FAIL,
  * SOFTFAIL, NEUTRAL, NONE, TEMPERROR or PERMERROR), why for errors, the email's
- * domain, its SPF records (there should only be one), and the record with the
- * IP added, when that would fix it.
+ * domain, its SPF records (there should only be one), the record with the IP
+ * added, when that would fix it, how many of the 10 lookups it used, and a trace
+ * of how each term in the record was checked.
  */
 export async function check(ipText, email, resolve = dohResolve) {
     const ip = parseIp(ipText);
@@ -42,7 +43,7 @@ export async function check(ipText, email, resolve = dohResolve) {
     const domain = email.slice(at + 1).toLowerCase();
     const local = (at > 0 && email.slice(0, at)) || 'postmaster';
 
-    const state = { ip, local, domain, resolve, lookups: 0, records: [] };
+    const state = { ip, local, domain, resolve, lookups: 0, records: [], trace: [] };
     let status;
     let reason = null;
     try {
@@ -55,12 +56,12 @@ export async function check(ipText, email, resolve = dohResolve) {
     }
     status = status.toUpperCase();
 
-    const { records } = state;
+    const { records, lookups, trace } = state;
     const suggestion = records.length === 1 && ['FAIL', 'SOFTFAIL', 'NEUTRAL'].includes(status)
         ? withIp(records[0], ip)
         : null;
 
-    return { status, reason, domain, records, suggestion };
+    return { status, reason, domain, records, suggestion, lookups, trace };
 }
 
 /** The SPF record with the IP allowed first, e.g. "v=spf1 ip4:1.2.3.4 include:… ~all" */
@@ -95,29 +96,74 @@ async function checkHost(state, domain, first = false) {
             }
         } else if (directive) {
             const [, qualifier, name, value = ''] = directive;
-            directives.push({ result: QUALIFIERS[qualifier || '+'], name: name.toLowerCase(), value });
+            directives.push({ term, result: QUALIFIERS[qualifier || '+'], name: name.toLowerCase(), value });
         } else {
             throw invalid(term);
         }
     }
 
-    for (const directive of directives) {
-        if (await matches(state, domain, directive)) {
+    // only the email's own record is traced, not the ones it includes
+    const trace = first ? state.trace : [];
+
+    for (const [i, directive] of directives.entries()) {
+        const before = state.lookups;
+        const matched = await traced(trace, directive.term, () => matches(state, domain, directive));
+        trace.push({
+            term: directive.term,
+            detail: describe(state, directive, matched, state.lookups - before),
+            outcome: matched ? directive.result : 'no match',
+        });
+        if (matched) {
+            for (const { term } of directives.slice(i + 1)) {
+                trace.push({ term, detail: 'not evaluated', outcome: 'skipped' });
+            }
+            if (redirect !== undefined) {
+                trace.push({ term: `redirect=${redirect}`, detail: 'not evaluated', outcome: 'skipped' });
+            }
             return directive.result;
         }
     }
 
     if (redirect !== undefined) {
-        countLookup(state);
-        const redirectTo = target(state, redirect, domain);
-        const result = await checkHost(state, redirectTo);
-        if (result === 'none') {
-            throw new Stop('permerror', `It redirects to ${redirectTo}, which has no SPF record.`);
-        }
+        const term = `redirect=${redirect}`;
+        const before = state.lookups;
+        const result = await traced(trace, term, async () => {
+            countLookup(state);
+            const redirectTo = target(state, redirect, domain);
+            const result = await checkHost(state, redirectTo);
+            if (result === 'none') {
+                throw new Stop('permerror', `It redirects to ${redirectTo}, which has no SPF record.`);
+            }
+            return result;
+        });
+        trace.push({ term, detail: `${plural(state.lookups - before, 'lookup')}, gave ${result}`, outcome: result });
         return result;
     }
     return 'neutral';
 }
+
+/** Run a term's check, adding it to the trace as the error if it ends the check */
+async function traced(trace, term, run) {
+    try {
+        return await run();
+    } catch (error) {
+        trace.push({ term, detail: error.reason ?? 'stopped the check', outcome: 'error' });
+        throw error;
+    }
+}
+
+/** How a mechanism was checked, e.g. "192.0.2.1 is in range" or "2 lookups, no match" */
+function describe(state, { name }, matched, lookups) {
+    if (name === 'all') {
+        return 'matches any IP';
+    }
+    if (name === 'ip4' || name === 'ip6') {
+        return `${state.ip.text} ${matched ? 'is' : "isn't"} in range`;
+    }
+    return `${plural(lookups, 'lookup')}, ${matched ? 'matched' : 'no match'}`;
+}
+
+const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
 /** If a mechanism, e.g. "ip4:1.2.3.0/24" (name ip4, value ":1.2.3.0/24"), matches the IP */
 async function matches(state, domain, { name, value }) {
