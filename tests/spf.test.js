@@ -192,7 +192,50 @@ test('the records are shown, with a suggestion when adding the IP would fix it',
         domain: 'example.com',
         records: ['v=spf1 include:_spf.example.net ~all'],
         suggestion: 'v=spf1 ip4:192.0.2.1 include:_spf.example.net ~all',
+        lookups: 1,
+        trace: [
+            { term: 'include:_spf.example.net', detail: '1 lookup, no match', outcome: 'no match' },
+            { term: '~all', detail: 'matches any IP', outcome: 'softfail' },
+        ],
     });
+});
+
+test('the trace shows how each term was checked, skipping the ones after a match', async () => {
+    const zone = {
+        'example.com': spf('v=spf1 include:_spf.example.net ip4:192.0.2.0/24 -all redirect=other.example'),
+        '_spf.example.net': spf('v=spf1 include:_spf2.example.net -all'),
+        '_spf2.example.net': spf('v=spf1 ip4:198.51.100.1 -all'),
+    };
+    const result = await check('192.0.2.1', 'someone@example.com', fakeDns(zone));
+
+    assert.equal(result.lookups, 2);
+    assert.deepEqual(result.trace, [
+        { term: 'include:_spf.example.net', detail: '2 lookups, no match', outcome: 'no match' },
+        { term: 'ip4:192.0.2.0/24', detail: '192.0.2.1 is in range', outcome: 'pass' },
+        { term: '-all', detail: 'not evaluated', outcome: 'skipped' },
+        { term: 'redirect=other.example', detail: 'not evaluated', outcome: 'skipped' },
+    ]);
+});
+
+test('the trace shows redirects, and the term that stopped the check', async () => {
+    const redirected = await check('192.0.2.1', 'someone@example.com', fakeDns({
+        'example.com': spf('v=spf1 ip4:198.51.100.1 redirect=_spf.example.net'),
+        '_spf.example.net': spf('v=spf1 -all'),
+    }));
+    assert.deepEqual(redirected.trace, [
+        { term: 'ip4:198.51.100.1', detail: '192.0.2.1 isn\'t in range', outcome: 'no match' },
+        { term: 'redirect=_spf.example.net', detail: '1 lookup, gave fail', outcome: 'fail' },
+    ]);
+
+    const broken = await check('192.0.2.1', 'someone@example.com', fakeDns({
+        'example.com': spf('v=spf1 include:nope.example -all'),
+    }));
+    assert.deepEqual(broken.trace, [
+        { term: 'include:nope.example', detail: 'It includes nope.example, which has no SPF record.', outcome: 'error' },
+    ]);
+
+    // records that don't parse, or aren't there, have nothing to trace
+    assert.deepEqual((await check('192.0.2.1', 'someone@example.com', fakeDns({}))).trace, []);
 });
 
 test('suggestions add the IP whatever the case of the record', () => {

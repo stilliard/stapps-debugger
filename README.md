@@ -13,7 +13,8 @@ The DNS lookups are the same ones a mail server makes when checking SPF, so Clou
 Everything Pages serves is in [`public/`](public/):
 
 - [`index.html`](public/index.html), [`spf.html`](public/spf.html) and [`404.html`](public/404.html) are the pages, styled by [`css/app.css`](public/css/app.css)
-- [`js/spf-page.js`](public/js/spf-page.js) runs the SPF page's form and shows the results
+- [`js/index.js`](public/js/index.js) runs the home page's tool search, and [`js/shortcut.js`](public/js/shortcut.js) the ⌘K / Ctrl K shortcut to it
+- [`js/spf-page.js`](public/js/spf-page.js) runs the SPF page's form and shows the results, with a trace of how each term in the record was checked
 - [`js/spf.js`](public/js/spf.js) checks SPF records, following [RFC 7208](https://www.rfc-editor.org/rfc/rfc7208) for everything real records use, but skipping some of its stricter checks on broken records
 - [`js/dns.js`](public/js/dns.js) does the DNS lookups
 - [`_headers`](public/_headers) adds security headers to every response

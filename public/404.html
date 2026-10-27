@@ -3,23 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css">
+    <link rel="icon" href="/favicon.svg">
     <link rel="stylesheet" href="/css/app.css">
+    <script type="module" src="/js/shortcut.js"></script>
     <title>Not found</title>
 </head>
 <body>
 
-    <header>
-        <h1><a href="/">Not found</a></h1>
+    <header class="site-header">
+        <div>
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+                <a class="brand" href="/">debugger</a>
+                <span aria-current="page">Not found</span>
+            </nav>
+            <a href="/#search" aria-label="Search tools"><kbd data-shortcut>⌘K</kbd></a>
+        </div>
     </header>
 
-    <p>Sorry, there's nothing here. <a href="/">Back to the debugger</a>.</p>
+    <main>
+        <h1 class="page-title">Not found</h1>
+        <p class="lede">Sorry, there's nothing here. <a href="/">Back to the tools</a>.</p>
+    </main>
 
-    <footer>
-
-        <p><a href="https://github.com/stilliard/stapps-debugger">Any ideas for improvements?
-        <br>Add feature requests &amp; bug reports as issues here.</a></p>
-
+    <footer class="site-footer">
+        <div>
+            <p>Open source. Ideas or bugs? <a href="https://github.com/stilliard/stapps-debugger/issues">Open an issue on GitHub</a></p>
+            <p class="version">v3.0</p>
+        </div>
     </footer>
 
 </body>
